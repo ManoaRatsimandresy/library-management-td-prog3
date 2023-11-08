@@ -4,7 +4,8 @@ info:
   version: '1.1.2'
   description: STD22085
 servers:
-  - url: https://library.com
+  - url: https://libraryForBooks.com
+
 paths:
   /books:
     get:

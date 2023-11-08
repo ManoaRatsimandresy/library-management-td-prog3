@@ -6,6 +6,10 @@ info:
 servers:
   - url: https://libraryForBooks.com
 
+tags:
+  - name: Books
+  - name: Author
+
 paths:
   /books:
     get:

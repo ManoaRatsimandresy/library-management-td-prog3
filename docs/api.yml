@@ -53,9 +53,9 @@ paths:
           schema:
             type: integer
             default: 50
-      responses:
+       responses:
         200:
-          description: The list of created or updated books
+          description: The list of filtered books
           content:
             application/json:
               schema:

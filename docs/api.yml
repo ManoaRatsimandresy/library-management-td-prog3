@@ -226,4 +226,20 @@ components:
           type: string
         authorId:
           type: string    
+parameters:
+    queryPagination:
+      name: page
+      in: query
+      description: Number of the page
+      schema:
+        type: integer
+        default: 1
+    pathPagination:
+      name: page
+      required: true
+      in: path
+      description: number of the page
+      schema: 
+        type: integer
+        default: 1
               

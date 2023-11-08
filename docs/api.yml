@@ -135,4 +135,75 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Author'
-                  
+    delete:
+      summary: Delete author(s)
+      description: Deletes one or more authors by ID(s).
+      operationId: deleteAuthors
+      requestBody:
+        description: List of author IDs to delete
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        204:
+          description: The author(s) were successfully deleted
+components:
+  schemas:
+    Author:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sex:
+          type: string
+          enum:
+            - M
+            - F
+    Book:
+      allOf:
+        - $ref: '#/components/schemas/CrupdateBook'
+        - properties:
+            author:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                sex:
+                  type: string
+                  enum:
+                    - M
+                    - F
+    CrupdateBook:
+      type: object
+      properties:
+        id:
+          type: string
+        bookName:
+          type: string
+        pageNumbers:
+          type: integer
+        topic:
+          type: string
+          enum:
+            - ROMANCE
+            - COMEDY
+            - OTHER
+        releaseDate:
+          type: string
+          format: date
+    UpdateBookAuthor:
+      type: object
+      properties:
+        bookId:
+          type: string
+        authorId:
+          type: string    
+              

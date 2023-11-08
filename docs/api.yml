@@ -83,3 +83,22 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Book'
+/books/authors:
+    put:
+      tags:
+        - "Authors"
+      summary: Attach an Author to Books
+      operationId: attachAuthorToBooks
+      requestBody:
+        description: List of Book and Author IDs to associate
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateBookAuthor'
+      responses:
+        204:
+          description: The author was successfully attached to the book(s)
+                  

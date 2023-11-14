@@ -1,24 +1,31 @@
-openapi: '3.0.2'
+openapi: 3.0.3
 info:
-  title: API Library
-  version: '1.1.2'
-  description: STD22085
+  title: Library API
+  version: 1.2.0
+  description: STD22001
 servers:
-  - url: https://libraryForBooks.com
-
+  - url: https://library.com
 tags:
   - name: Books
-  - name: Author
-
+  - name: Authors 
 paths:
   /books:
     get:
       tags:
-        - "Books"
+        - Books
       summary: Get all books
       description: The returned books are ordered by updated datetime.
       operationId: getBooks
       parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page'
+        - in: query
+          name: pagesize
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page_size'
+    
         - in: query
           name: bookName
           description: Filter return books by given name
@@ -26,35 +33,21 @@ paths:
           schema:
             type: string
         - in: query
-          name: fromReleaseDate
-          description: Filter books by release date starting from this date
-          required: false
+          name: releaseDateMin
+          description: If 'releaseDateMax' is note provide,'releaseDateMin' is ignored 'releaseDateMax' can not be after 'releaseDateMin'
           schema:
             type: string
             format: date
-        - in: query
-          name: toReleaseDate
-          description: Filter books by release date ending before this date
           required: false
+        - in: query
+          name: releaseDateMax
+          description: If 'releaseDateMin' is note provide,'releaseDateMax' is ignored 'releaseDateMin' can not be after 'releaseDateMax'
           schema:
             type: string
             format: date
-        - in: query
-          name: page
-          description: Page number for pagination, default 1
           required: false
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: pageSize
-          description: Number of items per page, default 50
-          required: false
-          schema:
-            type: integer
-            default: 50
-       responses:
-        200:
+      responses:
+        '200':
           description: The list of filtered books
           content:
             application/json:
@@ -62,19 +55,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Book'
-        400:
+        '400':
           $ref: '#/components/responses/400'
-        403:
+        '403':
           $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-        429:
-          $ref: '#/components/responses/429'
-        500:
+        '500':
           $ref: '#/components/responses/500'
-  put:
+    put:
       tags:
-        - "Books"
+        - Books
       summary: Create or update a list of books
       operationId: crupdateBooks
       requestBody:
@@ -83,9 +72,9 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/CrupdateBook'
+                $ref: '#/components/schemas/Book'
       responses:
-        200:
+        '200':
           description: The list of created or updated books
           content:
             application/json:
@@ -93,153 +82,642 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Book'
-/books/authors:
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+
+  /books/{bookId}/authors/{authorId} :
     put:
       tags:
-        - "Authors"
-      summary: Attach an Author to Books
-      operationId: attachAuthorToBooks
+        - Books
+      summary: create or update book
+      description: This operation create or update author of the book by specification id.
+      operationId: crupdateBookAuthor
+      parameters:
+        - in: query
+          name: bookId
+          description: Create books by given bookId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: authorId
+          description: Create  books by given authorId
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: The list of created or updated books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrupdateBooks'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /books/authors  :
+    put:
+      tags:
+        - Authors
+      summary: UpdateBookAuthor 
+      description: update book author. 
       requestBody:
-        description: List of Book and Author IDs to associate
         required: true
         content:
           application/json:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/UpdateBookAuthor'
+                $ref: '#/components/schemas/UpdateBooks'
       responses:
-        204:
-          description: The author was successfully attached to the book(s)
- /authors:
-    get:
-      summary: Get all authors
-      operationId: getAuthors
-      parameters:
-        - in: query
-          name: authorName
-          description: The returned authors are ordered by updated datetime.
-          schema: 
-            type: string
-          required: false
-        - in: path
-          name: page
-          description: Page number for pagination (default 1)
-          required: true
-          schema:
-            type: integer
-            default: 1
-        - in: path
-          name: pageSize
-          description: Number of items per page (default 50)
-          required: true
-          schema:
-            type: integer
-            default: 50
+        '200':
+          description: The list of filtered books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateBooks'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /books/import:
+    post:
+      tags:
+          - Books
+      summary: Create  a list of books
+      operationId: createBooks
+      requestBody:
+        content:
+          application/json:
+            schema:              
+                $ref: '#/components/schemas/ImportBookJson'
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+               $ref: '#/components/schemas/ImportBookExel'
       responses:
-        200:
-          description: The list of filtered authors
+        '200':
+          description: The list of created authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrupdateBooks'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /authors/import:
+    post:
+      tags:
+          - Authors
+      summary: Create  a list of author
+      operationId: createAuthors
+      requestBody:
+        content:
+          application/json:
+            schema:
+               $ref: '#/components/schemas/ImportAuthorJson'
+          application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+            schema:
+              $ref: '#/components/schemas/ImportAuthorExel'
+      responses:
+        '200':
+          description: The list of created authors
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Author'
-        400:
+        '400':
           $ref: '#/components/responses/400'
-        403:
+        '403':
           $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-        429:
-          $ref: '#/components/responses/429'
-        500:
+        '500':
           $ref: '#/components/responses/500'
-    delete:
-      summary: Delete author(s)
-      description: Deletes one or more authors by ID(s).
-      operationId: deleteAuthors
+
+  /authors:
+     get:
+      summary: Get author by name
+      description:  Retrieve a list of authors, optionally filtered by name.
+      operationId: getByAuthorName
+      tags:
+        - Authors
+      parameters:
+        - in: query
+          name: name
+          description: Name to filter authors
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of filtered books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+     put:
+      tags:
+          - Authors
+      summary: Create or update a list of authors
+      operationId: crupdateAuthors
       requestBody:
-        description: List of author IDs to delete
-        required: true
         content:
           application/json:
             schema:
               type: array
               items:
-                type: string
+                $ref: '#/components/schemas/Author'
       responses:
-        204:
-          description: The author(s) were successfully deleted
+        '200':
+          description: The list of created or updated authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /authors/page/{page}/pagesize/{pagesize}:
+     get:
+      summary: Get author by name
+      description:  Retrieve a list of authors, optionally filtered by name.
+      operationId: getByAuthorName
+      tags:
+        - Authors
+      parameters:
+        - name: page 
+          in: path  
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page'
+          required: true
+        - name: pagesize
+          in: path
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page_size'
+          required: true
+        - in: query
+          name: name
+          description: Name to filter authors
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of filtered books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /authors/{aId}: 
+    delete:
+      summary: Delete an author
+      operationId: deleteAuthor
+      tags:
+          - Authors
+      parameters:
+        - name: aId
+          in: path
+          description: Author identity to be delete
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Author deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+  /visitor:
+    get:
+      tags:
+        - Visitor
+      summary: Get all visitors
+      description: The visitors are ordered by updated datetime.
+      operationId: getVisitor
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page'
+        - in: query
+          name: pagesize
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page_size'
+  
+      responses:
+        '200':
+          description: The list of filtered books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Visitor'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /visitor/emprunts:
+    post:
+      tags:
+          - Visitor
+      summary: Create  a list of borrowed book
+      operationId: create Boroowing
+      requestBody :
+        content:
+          application/json:
+            schema:  
+               $ref: '#/components/schemas/Emprunts'   
+      responses:
+        '200':
+          description: The list of the borrowed books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Emprunts'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /return:
+    post:
+      tags:
+          - Visitor
+      summary: Create  a list of books
+      operationId: createBooks
+      requestBody :
+        content:
+          application/json:
+            schema:  
+               $ref: '#/components/schemas/Return' 
+        
+        
+      responses:
+        '200':
+          description: The list of created authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Return'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /emprunts: 
+    get:
+      summary: Get A Book borrowed
+      description:  Retrieve a list of borrowed book, optionally filtered by name.
+      operationId: getByBookName
+      tags:
+        - Books
+      parameters:
+        - name: page 
+          in: path  
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page'
+          required: true
+        - name: pagesize
+          in: path
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page_size'
+          required: true
+      responses:
+        '200':
+          description: The list of borrowed books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Emprunts'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
+  /visitors/{visitorId}/emprunts:
+    get:
+      summary: Get all of borrowed and return books
+      description: Get all of borrowed and return books
+      operationId: getEmpruntsAndReturnsByVisitor
+      tags:
+        - Visitor
+      parameters:
+        - in: path
+          name: visitorId
+          required: true
+          schema:
+            type: string
+          description: the visitor ID
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page'
+        - in: query
+          name: pagesize
+          schema:
+            $ref: '#/components/parameters/QueryPagination/schema/properties/page_size'
+        
+      responses:
+        '200':
+          description: get successfully the borrowed books list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Emprunts'
+  /visitors/{visitorId}/activities:
+    get:
+      summary: Get the activity of a visitors
+      description: |
+        Get the activity of a visitors
+      operationId: getVisitorActivities
+      tags:
+        - Visitor
+      parameters:
+        - in: path
+          name: visitorId
+          required: true
+          schema:
+            type: string
+          description: the visitor ID
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+          description: start of the date (format ISO 8601)
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+          description: end of the date(format ISO 8601)
+        
+      responses:
+        '200':
+          description: Les activités du visiteur pendant la période récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Emprunts'
 components:
+  responses:
+    '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseSuccefully'
+    '400':
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestException'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotAuthorizedException'
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerException'
   schemas:
+    Book:
+      type: object
+      properties:
+        availability:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/Author'
+      allOf:
+        - $ref: '#/components/schemas/CrupdateBooks' 
+      
     Author:
       type: object
       properties:
-        id:
-          type: string
-        name:
+        name: 
           type: string
         sex:
-          type: string
-          enum:
-            - M
-            - F
-    Book:
-      allOf:
-        - $ref: '#/components/schemas/CrupdateBook'
-        - properties:
-            author:
-              type: object
-              properties:
-                id:
-                  type: string
-                name:
-                  type: string
-                sex:
-                  type: string
-                  enum:
-                    - M
-                    - F
-    CrupdateBook:
+         $ref: '#/components/schemas/Sex'
+    Visitor: 
       type: object
       properties:
         id:
-          type: string
-        bookName:
-          type: string
-        pageNumbers:
           type: integer
-        topic:
+        name:
           type: string
-          enum:
+        reference:
+          type: string
+    Emprunts:
+      type: object
+      properties:
+        idVisitor:
+          type: integer
+        idBook:
+          type: string
+        borrowing date:
+          type: string
+          format: date
+    Return:
+      type: object
+      properties:
+        idEmprunt:
+          type: integer
+        return date:
+          type: string
+          format: date
+
+    Sex:
+        type: string
+        enum:
+            - M
+            - F  
+    Topic:
+        type: string
+        enum:
             - ROMANCE
             - COMEDY
             - OTHER
+    CrupdateBooks: 
+      type: object
+      properties:
+        bookName:
+          type: string
+        topic:
+            $ref: '#/components/schemas/Topic'
+        
+        pageNumbers:
+          $ref: '#/components/parameters/QueryPagination'
         releaseDate:
           type: string
           format: date
-    UpdateBookAuthor:
+    UpdateBooks:
       type: object
       properties:
         bookId:
           type: string
-        authorId:
-          type: string    
-parameters:
-    queryPagination:
-      name: page
+          description: The ID of the book to update
+        authorId: 
+          type: string
+          description: The new author ID for the book
+    Exception:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+    ResponseSuccefully:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: ResponseSuccefully
+        message: Response  successfully
+    BadRequestException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: BadRequestException
+        message: Bad request
+    NotAuthorizedException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: NotAuthorizedException
+        message: Not authorized
+    InternalServerException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: InternalServerException
+        message: Unexpected error
+    ImportAuthor:
+         oneOf: 
+          - $ref: '#/components/schemas/ImportAuthorExel'
+          - $ref: '#/components/schemas/ImportAuthorJson'
+    ImportBook:
+        type: object
+        properties:
+          idAuthor:
+            type: integer
+        oneOf: 
+          - $ref: '#/components/schemas/ImportBookExel'
+          - $ref: '#/components/schemas/ImportBookJson'
+    ImportBookExel:
+        $ref: '#/components/schemas/Book'
+    ImportBookJson:
+        $ref: '#/components/schemas/Book'
+    ImportAuthorExel:
+        $ref: '#/components/schemas/Author'
+    ImportAuthorJson:
+        $ref: '#/components/schemas/Author'
+    
+    OutputData:
+      type: object
+      properties:
+        message:
+          type: string
+    ImportChoice:
+      oneOf:
+        - $ref: '#/components/schemas/ImportAuthor'
+        - $ref: '#/components/schemas/ImportBook'
+      properties:
+        outputData:
+          $ref: '#/components/schemas/OutputData'
+  parameters:
+    QueryPagination:
+      name: queryPagination
       in: query
-      description: Number of the page
+      description: Paramètres de pagination.
+      required: false
       schema:
-        type: integer
-        default: 1
-    pathPagination:
-      name: page
-      required: true
+        type: object
+        properties:
+          page:
+            type: integer
+            default: 1
+            description: Le numéro de page.
+          page_size:
+            type: integer
+            default: 50
+            description: Le nombre d'éléments par page
+
+    
+    PathPagination:
+      name: queryPagination
       in: path
-      description: number of the page
-      schema: 
-        type: integer
-        default: 1
-              
+      description: pagination parametters.
+      required: true
+      schema:
+        type: object
+        properties:
+          page:
+            type: integer
+            default: 1
+            description: page number.
+          page_size:
+            type: integer
+            default: 50
+            description: Page size
